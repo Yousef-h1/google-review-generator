@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f3f5ef">
+    <meta name="description" content="استخرج رابط تقييم Google المباشر لنشاطك التجاري وجهّزه لبطاقة NFC.">
+    <title>رابط تقييم Google | بطاقة NFC</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="topbar">
+        <a class="brand" href="#main" aria-label="رابط تقييم Google، الصفحة الرئيسية">
+          <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+          <span class="brand-copy"><strong>نقطة</strong><small>أدوات NFC للأعمال</small></span>
+        </a>
+        <div class="topbar-meta"><span class="status-dot"></span><span>أداة مجانية</span><span class="meta-divider"></span><span>Google Reviews</span></div>
+      </header>
+
+      <main id="main">
+        <section class="intro" aria-labelledby="page-title">
+          <div class="eyebrow"><span class="eyebrow-line"></span>رابطك، مباشرة إلى التقييم</div>
+          <h1 id="page-title">خلّ تقييمك<br><span>على بُعد لمسة.</span></h1>
+          <p class="intro-copy">ضع رابط ملف نشاطك التجاري على Google، وخذ رابط التقييم المباشر الجاهز لبطاقة NFC.</p>
+          <div class="trust-note"><span class="lock-mark" aria-hidden="true">✓</span>لا نحفظ روابطك أو بيانات الدخول</div>
+        </section>
+
+        <section class="workspace" aria-label="إنشاء رابط التقييم">
+          <div class="form-panel">
+            <div class="panel-heading">
+              <div class="step-number">01</div>
+              <div><h2>أدخل رابط ملفك التجاري</h2><p>رابط Google Maps أو Google Business Profile</p></div>
+            </div>
+
+            <form id="lookup-form" novalidate>
+              <label class="field-label" for="business-url">رابط الملف التجاري</label>
+              <div class="input-wrap url-wrap">
+                <span class="input-symbol" aria-hidden="true">G</span>
+                <input id="business-url" name="business-url" type="url" inputmode="url" placeholder="https://maps.google.com/..." autocomplete="url" required>
+                <button class="clear-button" id="clear-button" type="button" aria-label="مسح الرابط" title="مسح الرابط" hidden>×</button>
+              </div>
+              <p class="field-hint">الصق رابط Google Maps، بما فيه <span dir="ltr">maps.app.goo.gl</span>، أو رابط <span dir="ltr">g.page/r/ID</span>.</p>
+
+              <div id="form-message" class="form-message" role="status" aria-live="polite" hidden></div>
+              <button class="primary-button" id="submit-button" type="submit">
+                <span class="button-label">استخراج رابط التقييم</span>
+                <span class="button-arrow" aria-hidden="true">←</span>
+              </button>
+            </form>
+
+            <div class="privacy-line"><span aria-hidden="true">⌁</span>لا نحفظ الرابط؛ يُستخدم مؤقتاً لفك رابط Google المختصر.</div>
+          </div>
+
+          <aside class="result-panel" aria-labelledby="result-title">
+            <div class="result-topline"><span>معاينة بطاقة NFC</span><span class="live-indicator"><i></i>جاهزة</span></div>
+            <div class="card-stage">
+              <div class="nfc-card" id="nfc-card">
+                <div class="card-grain" aria-hidden="true"></div>
+                <div class="card-brand"><span class="mini-mark" aria-hidden="true"><span></span><span></span><span></span></span><span>نقطة</span></div>
+                <div class="card-center">
+                  <span class="card-google">Google</span>
+                  <strong>قيّم تجربتك</strong>
+                  <span class="card-prompt">شاركنا تجربتك</span>
+                  <span class="stars" aria-label="خمس نجوم">★★★★★</span>
+                </div>
+                <div class="card-footer"><span>قرّب هاتفك للتقييم</span><span class="nfc-waves" aria-hidden="true">)))</span></div>
+              </div>
+              <div class="stage-shadow" aria-hidden="true"></div>
+            </div>
+            <div class="result-content" id="result-content">
+              <div class="result-empty-icon" aria-hidden="true"><span>↗</span></div>
+              <h2 id="result-title">رابطك سيظهر هنا</h2>
+              <p>ألصق رابط ملفك التجاري لنجهّز وجهة بطاقة التقييم.</p>
+            </div>
+            <div class="result-success" id="result-success" hidden>
+              <div class="result-label"><span class="success-check" aria-hidden="true">✓</span><span>رابط التقييم المباشر</span></div>
+              <a id="review-link" class="review-link" href="#" target="_blank" rel="noopener noreferrer"></a>
+              <div class="result-actions">
+                <button class="copy-button" id="copy-button" type="button"><span aria-hidden="true">▢</span> نسخ الرابط</button>
+                <a class="open-button" id="open-button" href="#" target="_blank" rel="noopener noreferrer" aria-label="فتح رابط التقييم في تبويب جديد" title="فتح الرابط">↗</a>
+              </div>
+            </div>
+            <div id="place-choices" class="place-choices" aria-live="polite" hidden></div>
+            <div class="result-footnote"><span class="footnote-mark">i</span><span>تأكد من صحة النشاط قبل نسخ الرابط إلى بطاقة NFC.</span></div>
+          </aside>
+        </section>
+
+        <section class="how-it-works" aria-label="خطوات العمل">
+          <div class="section-label">ببساطة</div>
+          <div class="how-step"><span>01</span><strong>الصق رابط Google</strong></div>
+          <span class="how-rule" aria-hidden="true"></span>
+          <div class="how-step"><span>02</span><strong>تحقق من نشاطك</strong></div>
+          <span class="how-rule" aria-hidden="true"></span>
+          <div class="how-step"><span>03</span><strong>أضف الرابط إلى NFC</strong></div>
+        </section>
+      </main>
+
+      <footer class="footer"><span>نقطة <span class="footer-dot">·</span> أدوات بسيطة لتجربة أفضل</span><span>هذه أداة مستقلة وليست تابعة لـ Google.</span></footer>
+    </div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>
