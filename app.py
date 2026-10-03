@@ -8,6 +8,7 @@ from urllib.parse import parse_qs, unquote, urljoin, urlparse
 import httpx
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 
@@ -20,6 +21,15 @@ MAPS_CID_PATTERN = re.compile(r"!1s(0x[0-9a-f]{1,16}:0x[0-9a-f]{1,16})", re.IGNO
 G_PAGE_REVIEW_PATTERN = re.compile(r"^/r/([^/]+)(?:/review)?/?$", re.IGNORECASE)
 
 app = FastAPI(title="Google Review Link Generator", docs_url=None, redoc_url=None)
+
+# تفعيل دعم CORS للسماح لأي موقع (بما في ذلك ووردبريس) بالاتصال بالخادم
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class ResolveRequest(BaseModel):
