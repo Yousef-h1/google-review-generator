@@ -22,7 +22,7 @@ G_PAGE_REVIEW_PATTERN = re.compile(r"^/r/([^/]+)(?:/review)?/?$", re.IGNORECASE)
 
 app = FastAPI(title="Google Review Link Generator", docs_url=None, redoc_url=None)
 
-# تفعيل دعم CORS للسماح لأي موقع (بما في ذلك ووردبريس) بالاتصال بالخادم
+# تفعيل دعم CORS للسماح لموقع ووردبريس بالاتصال بالخادم
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -117,46 +117,6 @@ async def resolve_place_id_from_cid(
     return match.group(0) if match else None
 
 
-def extract_business_query(value: str) -> str | None:
-    parsed = urlparse(value)
-    if not parsed.hostname or not is_google_host(parsed.hostname):
-        return None
-    query = parse_qs(parsed.query).get("q", [""])[0].strip()
-    return query or None
-
-
-async def search_google_places(
-    query: str,
-    api_key: str,
-    transport: httpx.AsyncBaseTransport | None = None,
-) -> list[dict[str, str]]:
-    async with httpx.AsyncClient(
-        timeout=httpx.Timeout(12.0, connect=5.0),
-        transport=transport,
-    ) as client:
-        response = await client.post(
-            "https://places.googleapis.com/v1/places:searchText",
-            headers={
-                "X-Goog-Api-Key": api_key,
-                "X-Goog-FieldMask": "places.id,places.displayName,places.formattedAddress",
-            },
-            json={"textQuery": query},
-        )
-    if response.is_error:
-        raise ValueError("تعذر البحث عن النشاط عبر Google Places. تحقق من إعداد الخادم وصلاحيات API.")
-
-    places = response.json().get("places", [])
-    return [
-        {
-            "place_id": place["id"],
-            "name": place.get("displayName", {}).get("text", "نشاط تجاري"),
-            "address": place.get("formattedAddress", ""),
-        }
-        for place in places
-        if isinstance(place, dict) and place.get("id")
-    ]
-
-
 def make_review_url(place_id: str) -> str:
     return f"https://search.google.com/local/writereview?placeid={place_id}"
 
@@ -236,34 +196,11 @@ async def resolve_share_link(request: ResolveRequest) -> dict[str, object]:
                 "places": [],
             }
 
-    query = extract_business_query(resolved_url)
-    if not query:
-        raise HTTPException(status_code=422, detail="لم يتضمن الرابط اسماً أو معرّفاً يمكن البحث به.")
-
-    api_key = os.environ.get("GOOGLE_MAPS_API_KEY", "").strip()
-    if not api_key:
-        raise HTTPException(
-            status_code=503,
-            detail="رابط المشاركة يحتوي معرّف ملف Google داخلياً، وليس Place ID. أضف مفتاح Places API إلى متغير الخادم GOOGLE_MAPS_API_KEY مرة واحدة؛ لا يُطلب المفتاح في الصفحة.",
-        )
-
-    try:
-        places = await search_google_places(query, api_key)
-    except httpx.RequestError as error:
-        raise HTTPException(status_code=502, detail="تعذر البحث عن النشاط عبر Google Places.") from error
-    except ValueError as error:
-        raise HTTPException(status_code=502, detail=str(error)) from error
-    if not places:
-        raise HTTPException(status_code=404, detail="لم يعثر Google Places على نشاط مطابق للرابط.")
-
-    selected_place = places[0] if len(places) == 1 else None
-    return {
-        "resolved_url": resolved_url,
-        "review_id": None,
-        "place_id": selected_place["place_id"] if selected_place else None,
-        "review_url": make_review_url(selected_place["place_id"]) if selected_place else None,
-        "places": places,
-    }
+    # تم الاستغناء نهائياً عن مفتاح Google Places API وتوجيه المستخدم لوضع رابط مباشر
+    raise HTTPException(
+        status_code=422,
+        detail="يرجى استخدام رابط خرائط جوجل المباشر أو رابط g.page الذي يحتوي على معرّف المكان مباشرة، لضمان عمل الأداة مجاناً وبدون الحاجة لأي مفتاح API.",
+    )
 
 
 app.mount("/", StaticFiles(directory=str(WEB_DIR), html=True), name="web")
