@@ -23,7 +23,6 @@ G_PAGE_REVIEW_PATTERN = re.compile(r"^/r/([^/]+)(?:/review)?/?$", re.IGNORECASE)
 
 app = FastAPI(title="Google Review Link Generator", docs_url=None, redoc_url=None)
 
-# تفعيل دعم CORS للسماح لموقع ووردبريس بالاتصال بالخادم
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -111,7 +110,7 @@ async def resolve_share_link(request: ResolveRequest) -> dict[str, object]:
     except httpx.RequestError as error:
         raise HTTPException(status_code=502, detail="تعذر الاتصال بـ Google لفك الرابط.") from error
 
-    # 1. التحقق من رابط g.page مباشر
+    # 1. فحص رابط g.page مباشر
     review_id = extract_g_page_review_id(resolved_url) or extract_g_page_review_id(request.url.strip())
     if review_id:
         return {
@@ -120,7 +119,7 @@ async def resolve_share_link(request: ResolveRequest) -> dict[str, object]:
             "places": [],
         }
 
-    # 2. استخراج Place ID إن وجد مباشرة
+    # 2. استخراج Place ID الحقيقي إن وجد
     place_id = extract_place_id(resolved_url) or extract_place_id(request.url.strip())
     if place_id:
         return {
@@ -129,26 +128,10 @@ async def resolve_share_link(request: ResolveRequest) -> dict[str, object]:
             "places": [],
         }
 
-    # 3. استخراج اسم المكان من مسار الرابط الموجه للروابط القصيرة
-    parsed = urlparse(resolved_url)
-    path_segments = parsed.path.split("/")
-    place_name = ""
-    for i, seg in enumerate(path_segments):
-        if seg == "place" and i + 1 < len(path_segments):
-            place_name = unquote(path_segments[i + 1]).replace("+", " ")
-            break
-
-    if place_name:
-        return {
-            "resolved_url": resolved_url,
-            "review_url": f"https://search.google.com/local/writereview?placeid=&q={urllib.parse.quote(place_name)}",
-            "places": [],
-        }
-
-    # 4. حل افتراضي آمن للروابط المبهمة لضمان عدم تعطل الأداة أبداً
+    # 3. إذا لم يوجد Place ID مباشر، نقوم بتوجيه الزر إلى رابط البحث المباشر في خرائط جوجل بدلاً من writereview الخاطئ
     return {
         "resolved_url": resolved_url,
-        "review_url": f"https://www.google.com/maps/search/?api=1&query={urllib.parse.quote(resolved_url)}",
+        "review_url": resolved_url,  # استخدام الرابط الموجه الحقيقي لفتحه مباشرة في الخرائط أو البحث
         "places": [],
     }
 
